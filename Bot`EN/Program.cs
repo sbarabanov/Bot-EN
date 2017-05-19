@@ -33,9 +33,9 @@ namespace Bot_EN
             InlineKeyboardMarkup keyboardEmpty = new InlineKeyboardMarkup {
                 inline_keyboard = new InlineKeyboardButton[][] {
                     new InlineKeyboardButton[] {
-                        new InlineKeyboardButton { text = "add word`s", callback_data = "add" },
-                        new InlineKeyboardButton { text = "new word`s", callback_data = "new" },
-                        new InlineKeyboardButton { text = "tng word`s", callback_data = "tng" },
+                        new InlineKeyboardButton { text = "add word`s", callback_data = "btn`add" },
+                        new InlineKeyboardButton { text = "new word`s", callback_data = "btn`new" },
+                        new InlineKeyboardButton { text = "tng word`s", callback_data = "btn`tng" },
                     },
                 }
             };
@@ -43,8 +43,8 @@ namespace Bot_EN
             InlineKeyboardMarkup keyboardNew = new InlineKeyboardMarkup {
                 inline_keyboard = new InlineKeyboardButton[][] {
                     new InlineKeyboardButton[] {
-                        new InlineKeyboardButton { text = "save", callback_data = "save" },
-                        new InlineKeyboardButton { text = "next", callback_data = "next" },
+                        new InlineKeyboardButton { text = "save", callback_data = "btn`save" },
+                        new InlineKeyboardButton { text = "next", callback_data = "btn`next" },
                     },
                 }
             };
@@ -138,14 +138,14 @@ namespace Bot_EN
                     {
                         switch (update.callback_query.data)
                         {
-                            case "add":
+                            case "btn`add":
                                 {
                                     type = Type.Add;
                                     SendMessage(idChat, " ` add world`s ");
                                     
                                     break;
                                 }
-                            case "new":
+                            case "btn`new":
                                 {
                                     if (words.Count(w => w.Next == DateTime.MinValue) > 0)
                                     {
@@ -162,7 +162,7 @@ namespace Bot_EN
 
                                     break;
                                 }
-                            case "tng":
+                            case "btn`tng":
                                 {
                                     if (words.Count(w => w.Prev != DateTime.MinValue) > 0)
                                     {
@@ -170,7 +170,7 @@ namespace Bot_EN
                                         SendMessage(idChat, " ` repetition world`s ");
 
                                         lesson = words.Where(w => w.Prev != DateTime.MinValue).OrderBy(w => w.Prev).First();
-                                        SendMessage(idChat, GetWEn(lesson), keyboardNew);
+                                        SendMessage(idChat, GetWEn(lesson), GetKeyboard(lesson, words));
                                     }
                                     else
                                     {
@@ -179,8 +179,8 @@ namespace Bot_EN
 
                                     break;
                                 }
-                            case "save":
-                            case "next":
+                            case "btn`save":
+                            case "btn`next":
                                 {
                                     words.Find(w => w.EN == lesson.EN).Prev = now;
 
@@ -189,6 +189,28 @@ namespace Bot_EN
 
                                     lesson = words.OrderBy(w => w.Prev).First();
                                     SendMessage(idChat, GetWTr(lesson), keyboardNew);
+
+                                    break;
+                                }
+                            default:
+                                {
+                                    if (type == Type.Tng)
+                                    {
+                                        if (lesson.EN == update.callback_query.data)
+                                        {
+                                            SendMessage(idChat, " ` yes ");
+
+                                            words.Find(w => w.EN == lesson.EN).Prev = now;
+                                            words.Find(w => w.EN == lesson.EN).Next = now;
+                                        }
+                                        else
+                                        {
+                                            SendMessage(idChat, " ` no ");
+                                        }
+
+                                        lesson = words.Where(w => w.Prev != DateTime.MinValue).OrderBy(w => w.Prev).First();
+                                        SendMessage(idChat, GetWEn(lesson), GetKeyboard(lesson, words));
+                                    }
 
                                     break;
                                 }
@@ -246,7 +268,7 @@ namespace Bot_EN
             return " ` " + word.EN;
         }
 
-        static InlineKeyboardMarkup GetKeyboard(Word word, Word[] words)
+        static InlineKeyboardMarkup GetKeyboard(Word word, List<Word> words)
         {
             Random rnd = new Random();
             Word[] others = words.Where(w => w.EN != word.EN).OrderBy(x => rnd.Next()).Take(3).ToArray();
@@ -254,8 +276,8 @@ namespace Bot_EN
 
             InlineKeyboardMarkup keyboard = new InlineKeyboardMarkup {
                 inline_keyboard = new InlineKeyboardButton[][] {
-                    (new int[] { 0, 1 }).Select(i => new InlineKeyboardButton { text = union[i].RU, callback_data = "#" + union[i].EN }).ToArray(),
-                    (new int[] { 2, 3 }).Select(i => new InlineKeyboardButton { text = union[i].RU, callback_data = "#" + union[i].EN }).ToArray(),
+                    (new int[] { 0, 1 }).Select(i => new InlineKeyboardButton { text = union[i].RU, callback_data = union[i].EN }).ToArray(),
+                    (new int[] { 2, 3 }).Select(i => new InlineKeyboardButton { text = union[i].RU, callback_data = union[i].EN }).ToArray(),
                 }
             };
 
